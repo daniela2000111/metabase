@@ -18,8 +18,8 @@
 (mr/def ::response
   "Shape of the response for the backend agent endpoint."
   [:map
-   [:history    [:maybe ::metabot-v3.client.schema/messages]]
-   [:sequential ::metabot-v3.reactions/reaction]])
+   [:reactions [:sequential ::metabot-v3.reactions/reaction]]
+   [:history   [:maybe ::metabot-v3.client.schema/messages]]])
 
 (mu/defn ^:private encode-reactions [reactions :- [:sequential ::metabot-v3.reactions/reaction]]
   (mc/encode [:sequential ::metabot-v3.reactions/reaction]
