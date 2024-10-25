@@ -70,7 +70,6 @@ function ChartSettingsSidebarInner({
               dispatch(onReplaceAllVisualizationSettings(settings, question))
             }
             onClose={handleClose}
-            noPreview
             initial={initialChartSetting}
             computedSettings={visualizationSettings}
           />

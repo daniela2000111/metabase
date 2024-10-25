@@ -38,109 +38,82 @@ import {
   SectionWarnings,
 } from "./ChartSettings.styled";
 import type {
-  ChartSettingsProps,
+  type ChartSettingsProps,
   ChartSettingsWithStateProps,
+  type SectionRadioProps,
+  type UseChartSectionsProps,
+  type UseChartSettingsStateProps,
   Widget,
+  type WidgetListProps,
 } from "./types";
 
 // section names are localized
 const DEFAULT_TAB_PRIORITY = [t`Data`];
 
-export const ChartSettings = ({
-  initial,
-  settings: propSettings,
-  series,
-  computedSettings: propComputedSettings,
-  onChange,
-  isDashboard = false,
-  noPreview = false,
-  dashboard,
-  dashcard,
-  onDone,
-  onClose,
-  question,
-  className,
-  widgets: propWidgets,
-}: ChartSettingsProps) => {
-  const [currentSection, setCurrentSection] = useState<string | null>(
-    initial?.section ?? null,
+const SectionRadio = ({
+  currentSection,
+  options,
+  setCurrentWidget,
+  setCurrentSection,
+}: SectionRadioProps) => {
+  const handleShowSection = useCallback(
+    (section: string) => {
+      setCurrentSection(section);
+      // close any open widget.
+      setCurrentWidget(null);
+    },
+    [setCurrentSection, setCurrentWidget],
   );
-  const [currentWidget, setCurrentWidget] = useState<Widget | null>(
-    initial?.widget ?? null,
-  );
-  const [popoverRef, setPopoverRef] = useState<HTMLElement | null>();
-  const [warnings, setWarnings] = useState();
 
-  const chartSettings = useMemo(
-    () => propSettings || series[0].card.visualization_settings,
-    [series, propSettings],
+  return (
+    <SectionContainer isDashboard={false}>
+      <Radio
+        value={currentSection ?? undefined}
+        onChange={handleShowSection}
+        options={options}
+        optionNameFn={_.identity<string>}
+        optionValueFn={_.identity<string>}
+        optionKeyFn={_.identity<string>}
+        variant="underlined"
+      />
+    </SectionContainer>
   );
+};
+
+const WidgetList = ({
+  chartSettings,
+  series,
+  onChange,
+  widgets,
+  visibleWidgets,
+  question,
+  currentSectionHasColumnSettings,
+  computedSettings: propComputedSettings,
+  setCurrentWidget,
+  transformedSeries,
+  currentWidget,
+}: WidgetListProps) => {
+  const [popoverRef, setPopoverRef] = useState<HTMLElement | null>();
 
   const computedSettings = useMemo(
     () => propComputedSettings || {},
     [propComputedSettings],
   );
 
-  const handleChangeSettings = useCallback(
-    (changedSettings: VisualizationSettings, question: Question) => {
-      onChange?.(updateSettings(chartSettings, changedSettings), question);
+  // allows a widget to temporarily replace itself with a different widget
+  const handleShowWidget = useCallback(
+    (widget: Widget, ref: HTMLElement | null) => {
+      setPopoverRef(ref);
+      setCurrentWidget(widget);
     },
-    [chartSettings, onChange],
+    [setCurrentWidget],
   );
 
-  const chartSettingsRawSeries = useMemo(
-    () => assocIn(series, [0, "card", "visualization_settings"], chartSettings),
-    [chartSettings, series],
-  );
-
-  const transformedSeries = useMemo(() => {
-    const { series: transformedSeries } = getVisualizationTransformed(
-      extractRemappings(chartSettingsRawSeries),
-    );
-    return transformedSeries;
-  }, [chartSettingsRawSeries]);
-
-  const widgets = useMemo(
-    () =>
-      propWidgets ||
-      getSettingsWidgetsForSeries(
-        transformedSeries,
-        handleChangeSettings,
-        isDashboard,
-        { dashboardId: dashboard?.id },
-      ),
-    [
-      propWidgets,
-      transformedSeries,
-      handleChangeSettings,
-      isDashboard,
-      dashboard?.id,
-    ],
-  );
-
-  const columnHasSettings = useCallback(
-    (col: DatasetColumn) => {
-      const settings = chartSettings || {};
-      const settingsDefs = getSettingDefinitionsForColumn(series, col);
-      const getComputedSettingsResult = getComputedSettings(
-        settingsDefs,
-        col,
-        settings,
-      );
-
-      return getSettingsWidgets(
-        settingsDefs,
-        settings,
-        getComputedSettingsResult,
-        col,
-        _.noop,
-        {
-          series: series,
-        },
-      ).some(widget => !widget.hidden);
-    },
-    [chartSettings, series],
-  );
+  // go back to previously selected section
+  const handleEndShowWidget = useCallback(() => {
+    setPopoverRef(null);
+    setCurrentWidget(null);
+  }, [setCurrentWidget]);
 
   const styleWidget = useMemo(() => {
     const seriesSettingsWidget =
@@ -210,35 +183,29 @@ export const ChartSettings = ({
     return null;
   }, [currentWidget, widgets]);
 
-  const handleShowSection = useCallback((section: string) => {
-    setCurrentSection(section);
-    setCurrentWidget(null);
-  }, []);
+  const columnHasSettings = useCallback(
+    (col: DatasetColumn) => {
+      const settings = chartSettings || {};
+      const settingsDefs = getSettingDefinitionsForColumn(series, col);
+      const getComputedSettingsResult = getComputedSettings(
+        settingsDefs,
+        col,
+        settings,
+      );
 
-  // allows a widget to temporarily replace itself with a different widget
-  const handleShowWidget = useCallback(
-    (widget: Widget, ref: HTMLElement | null) => {
-      setPopoverRef(ref);
-      setCurrentWidget(widget);
+      return getSettingsWidgets(
+        settingsDefs,
+        settings,
+        getComputedSettingsResult,
+        col,
+        _.noop,
+        {
+          series,
+        },
+      ).some(widget => !widget.hidden);
     },
-    [],
+    [chartSettings, series],
   );
-
-  // go back to previously selected section
-  const handleEndShowWidget = useCallback(() => {
-    setPopoverRef(null);
-    setCurrentWidget(null);
-  }, []);
-
-  const handleResetSettings = useCallback(() => {
-    const originalCardSettings = dashcard?.card.visualization_settings;
-    const clickBehaviorSettings = getClickBehaviorSettings(chartSettings);
-
-    onChange?.({
-      ...originalCardSettings,
-      ...clickBehaviorSettings,
-    });
-  }, [chartSettings, dashcard?.card.visualization_settings, onChange]);
 
   const handleChangeSeriesColor = useCallback(
     (seriesKey: string, color: string) => {
@@ -247,14 +214,96 @@ export const ChartSettings = ({
     [chartSettings, onChange],
   );
 
-  const handleDone = useCallback(() => {
-    onDone?.(chartSettings);
-    onClose?.();
-  }, [chartSettings, onClose, onDone]);
+  return (
+    <>
+      <ChartSettingsListContainer className={CS.scrollShow}>
+        <ChartSettingsWidgetList
+          widgets={visibleWidgets}
+          extraWidgetProps={{
+            // NOTE: special props to support adding additional fields
+            question,
+            onShowWidget: handleShowWidget,
+            onEndShowWidget: handleEndShowWidget,
+            currentSectionHasColumnSettings,
+            columnHasSettings,
+            onChangeSeriesColor: handleChangeSeriesColor,
+          }}
+        />
+        <ChartSettingsWidgetPopover
+          anchor={popoverRef as HTMLElement}
+          widgets={[styleWidget, formattingWidget].filter(
+            (widget): widget is Widget => !!widget,
+          )}
+          handleEndShowWidget={handleEndShowWidget}
+        />
+      </ChartSettingsListContainer>
+    </>
+  );
+};
 
-  const handleCancel = useCallback(() => {
-    onClose?.();
-  }, [onClose]);
+const useChartSettingsState = ({
+  settings,
+  series,
+  onChange,
+  widgets: propWidgets,
+  isDashboard,
+  dashboard,
+}: UseChartSettingsStateProps) => {
+  const chartSettings = useMemo(
+    () => settings || series[0].card.visualization_settings,
+    [series, settings],
+  );
+
+  const chartSettingsRawSeries = useMemo(
+    () => assocIn(series, [0, "card", "visualization_settings"], chartSettings),
+    [chartSettings, series],
+  );
+
+  const transformedSeries = useMemo(() => {
+    const { series: transformedSeries } = getVisualizationTransformed(
+      extractRemappings(chartSettingsRawSeries),
+    );
+    return transformedSeries;
+  }, [chartSettingsRawSeries]);
+
+  const handleChangeSettings = useCallback(
+    (changedSettings: VisualizationSettings, question?: Question) => {
+      onChange?.(updateSettings(chartSettings, changedSettings), question);
+    },
+    [chartSettings, onChange],
+  );
+
+  const widgets = useMemo(
+    () =>
+      propWidgets ||
+      getSettingsWidgetsForSeries(
+        transformedSeries,
+        handleChangeSettings,
+        isDashboard,
+        { dashboardId: dashboard?.id },
+      ),
+    [
+      propWidgets,
+      transformedSeries,
+      handleChangeSettings,
+      isDashboard,
+      dashboard?.id,
+    ],
+  );
+
+  return {
+    chartSettings,
+    chartSettingsRawSeries,
+    transformedSeries,
+    handleChangeSettings,
+    widgets,
+  };
+};
+
+const useChartSections = ({ initial, widgets }: UseChartSectionsProps) => {
+  const [currentSection, setCurrentSection] = useState<string | null>(
+    initial?.section ?? null,
+  );
 
   const sections: Record<string, Widget[]> = useMemo(() => {
     const sectionObj: Record<string, Widget[]> = {};
@@ -306,15 +355,137 @@ export const ChartSettings = ({
     sections[chartSettingCurrentSection] || []
   ).some((widget: Widget) => widget.id === "column_settings");
 
-  const extraWidgetProps = {
-    // NOTE: special props to support adding additional fields
-    question,
-    onShowWidget: handleShowWidget,
-    onEndShowWidget: handleEndShowWidget,
+  const showSectionPicker =
+    sectionNames.length > 1 &&
+    !(
+      visibleWidgets.length === 1 &&
+      visibleWidgets[0].id === "column_settings" &&
+      !currentSectionHasColumnSettings
+    );
+
+  return {
+    sectionNames,
+    chartSettingCurrentSection,
+    visibleWidgets,
     currentSectionHasColumnSettings,
-    columnHasSettings,
-    onChangeSeriesColor: handleChangeSeriesColor,
+    showSectionPicker,
+    currentSection,
+    setCurrentSection,
+    widgets,
   };
+};
+
+export const ChartSettings = ({
+  initial,
+  settings,
+  series,
+  computedSettings: propComputedSettings,
+  onChange,
+  isDashboard = false,
+  dashboard,
+  question,
+  widgets: propWidgets,
+}: ChartSettingsProps) => {
+  const [currentWidget, setCurrentWidget] = useState<Widget | null>(
+    initial?.widget ?? null,
+  );
+
+  const {
+    chartSettings,
+    transformedSeries,
+    widgets: finalWidgetList,
+  } = useChartSettingsState({
+    settings,
+    series,
+    onChange,
+    isDashboard,
+    dashboard,
+    widgets: propWidgets,
+  });
+
+  const {
+    chartSettingCurrentSection,
+    currentSectionHasColumnSettings,
+    sectionNames,
+    setCurrentSection,
+    showSectionPicker,
+    visibleWidgets,
+  } = useChartSections({
+    initial,
+    widgets: finalWidgetList,
+  });
+
+  return (
+    <ChartSettingsMenu data-testid="chartsettings-sidebar">
+      {showSectionPicker && (
+        <SectionRadio
+          options={sectionNames}
+          setCurrentWidget={setCurrentWidget}
+          currentSection={chartSettingCurrentSection}
+          setCurrentSection={setCurrentSection}
+        />
+      )}
+      <WidgetList
+        chartSettings={chartSettings}
+        onChange={onChange}
+        widgets={finalWidgetList}
+        visibleWidgets={visibleWidgets}
+        question={question}
+        currentSectionHasColumnSettings={currentSectionHasColumnSettings}
+        series={series}
+        computedSettings={propComputedSettings}
+        setCurrentWidget={setCurrentWidget}
+        currentWidget={currentWidget}
+        transformedSeries={transformedSeries}
+      />
+    </ChartSettingsMenu>
+  );
+};
+
+export const ChartSettingsWithState = ({
+  settings,
+  onChange,
+  series,
+  isDashboard,
+  dashboard,
+  dashcard,
+}: ChartSettingsWithStateProps) => {
+  const [tempSettings, setTempSettings] = useState(settings);
+  const [warnings, setWarnings] = useState();
+
+  useEffect(() => {
+    if (settings) {
+      setTempSettings(settings);
+    }
+  }, [settings]);
+
+  const { chartSettings, chartSettingsRawSeries, handleChangeSettings } =
+    useChartSettingsState({
+      settings: tempSettings,
+      series,
+      onChange: setTempSettings,
+    });
+
+  const onDone = useCallback(
+    (settings: VisualizationSettings) => onChange?.(settings ?? tempSettings),
+    [onChange, tempSettings],
+  );
+
+  const handleDone = useCallback(() => {
+    onDone?.(chartSettings);
+  }, [chartSettings, onDone]);
+
+  const handleCancel = useCallback(() => {}, []);
+
+  const handleResetSettings = useCallback(() => {
+    const originalCardSettings = dashcard?.card.visualization_settings;
+    const clickBehaviorSettings = getClickBehaviorSettings(chartSettings);
+
+    setTempSettings({
+      ...originalCardSettings,
+      ...clickBehaviorSettings,
+    });
+  }, [chartSettings, dashcard?.card.visualization_settings]);
 
   const onResetToDefault =
     // resetting virtual cards wipes the text and broke the UI (metabase#14644)
@@ -322,94 +493,38 @@ export const ChartSettings = ({
       ? handleResetSettings
       : null;
 
-  const showSectionPicker =
-    // don't show section tabs for a single section
-    sectionNames.length > 1 &&
-    // hide the section picker if the only widget is column_settings
-    !(
-      visibleWidgets.length === 1 &&
-      visibleWidgets[0].id === "column_settings" &&
-      // and this section doesn't have that as a direct child
-      !currentSectionHasColumnSettings
-    );
-
   return (
-    <ChartSettingsRoot className={className}>
-      <ChartSettingsMenu data-testid="chartsettings-sidebar">
-        {showSectionPicker && (
-          <SectionContainer isDashboard={false}>
-            <Radio
-              value={chartSettingCurrentSection ?? undefined}
-              onChange={handleShowSection}
-              options={sectionNames}
-              optionNameFn={v => v}
-              optionValueFn={v => v}
-              optionKeyFn={v => v}
-              variant="underlined"
-            />
-          </SectionContainer>
-        )}
-        <ChartSettingsListContainer className={CS.scrollShow}>
-          <ChartSettingsWidgetList
-            widgets={visibleWidgets}
-            extraWidgetProps={extraWidgetProps}
-          />
-        </ChartSettingsListContainer>
-      </ChartSettingsMenu>
-      {!noPreview && (
-        <ChartSettingsPreview>
-          <SectionWarnings warnings={warnings} size={20} />
-          <ChartSettingsVisualizationContainer>
-            <Visualization
-              className={CS.spread}
-              rawSeries={chartSettingsRawSeries}
-              showTitle
-              isEditing
-              isDashboard
-              dashboard={dashboard}
-              dashcard={dashcard}
-              isSettings
-              showWarnings
-              onUpdateVisualizationSettings={handleChangeSettings}
-              onUpdateWarnings={setWarnings}
-            />
-          </ChartSettingsVisualizationContainer>
-          <ChartSettingsFooter
-            onDone={handleDone}
-            onCancel={handleCancel}
-            onReset={onResetToDefault}
-          />
-        </ChartSettingsPreview>
-      )}
-      <ChartSettingsWidgetPopover
-        anchor={popoverRef as HTMLElement}
-        widgets={[styleWidget, formattingWidget].filter(
-          (widget): widget is Widget => !!widget,
-        )}
-        handleEndShowWidget={handleEndShowWidget}
+    <ChartSettingsRoot className={CS.spread}>
+      <ChartSettings
+        series={series}
+        isDashboard={isDashboard ?? false}
+        dashboard={dashboard}
+        onChange={handleChangeSettings}
+        settings={chartSettings}
       />
+      <ChartSettingsPreview>
+        <SectionWarnings warnings={warnings} size={20} />
+        <ChartSettingsVisualizationContainer>
+          <Visualization
+            className={CS.spread}
+            rawSeries={chartSettingsRawSeries}
+            showTitle
+            isEditing
+            isDashboard
+            dashboard={dashboard}
+            dashcard={dashcard}
+            isSettings
+            showWarnings
+            onUpdateVisualizationSettings={handleChangeSettings}
+            onUpdateWarnings={setWarnings}
+          />
+        </ChartSettingsVisualizationContainer>
+        <ChartSettingsFooter
+          onDone={handleDone}
+          onCancel={handleCancel}
+          onReset={onResetToDefault}
+        />
+      </ChartSettingsPreview>
     </ChartSettingsRoot>
-  );
-};
-
-export const ChartSettingsWithState = (props: ChartSettingsWithStateProps) => {
-  const [tempSettings, setTempSettings] = useState(props.settings);
-
-  useEffect(() => {
-    if (props.settings) {
-      setTempSettings(props.settings);
-    }
-  }, [props.settings]);
-
-  const onDone = (settings: VisualizationSettings) =>
-    props.onChange?.(settings ?? tempSettings);
-
-  return (
-    <ChartSettings
-      {...props}
-      onChange={setTempSettings}
-      onDone={onDone}
-      settings={tempSettings}
-    />
   );
 };

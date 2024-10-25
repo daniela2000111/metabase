@@ -1,7 +1,6 @@
 import { t } from "ttag";
 
 import ModalWithTrigger from "metabase/components/ModalWithTrigger";
-import CS from "metabase/css/core/index.css";
 import { ChartSettingsWithState } from "metabase/visualizations/components/ChartSettings";
 import type {
   Dashboard,
@@ -41,7 +40,6 @@ export function ChartSettingsButton({
       enableMouseEvents
     >
       <ChartSettingsWithState
-        className={CS.spread}
         series={series}
         onChange={onReplaceAllVisualizationSettings}
         isDashboard
