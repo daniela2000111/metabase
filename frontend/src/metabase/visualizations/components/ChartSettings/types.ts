@@ -36,9 +36,9 @@ export type WidgetListProps = {
   ) => void;
   widgets: Widget[];
   visibleWidgets: Widget[];
-  question: Question;
+  question?: Question;
   currentSectionHasColumnSettings: boolean;
-  computedSettings: ComputedVisualizationSettings;
+  computedSettings?: ComputedVisualizationSettings;
   setCurrentWidget: (widget: Widget | null) => void;
   transformedSeries: RawSeries | TransformedSeries;
   currentWidget: Widget | null;
@@ -54,7 +54,6 @@ export type ChartSettingsProps = {
   dashboard?: Dashboard;
   settings?: VisualizationSettings;
   question?: Question;
-  onClose: () => void;
   initial?: QueryBuilderUIControls["initialChartSetting"];
   computedSettings?: ComputedVisualizationSettings;
   widgets?: Widget[];
@@ -65,15 +64,16 @@ export type ChartSettingsWithStateProps = Pick<
   "series" | "onChange" | "isDashboard" | "dashboard"
 > & {
   dashcard?: DashboardCard;
+  onClose: () => void;
 };
 
 export type UseChartSectionsProps = {
-  widgets?: Widget[];
+  widgets: Widget[];
   initial?: QueryBuilderUIControls["initialChartSetting"];
 };
 
 export type UseChartSettingsStateProps = {
-  settings: VisualizationSettings;
+  settings?: VisualizationSettings;
   series: Series;
   onChange: (
     changedSettings: VisualizationSettings,

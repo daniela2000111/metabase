@@ -1,5 +1,5 @@
 import { assocIn } from "icepick";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { t } from "ttag";
 import _ from "underscore";
 
@@ -38,13 +38,13 @@ import {
   SectionWarnings,
 } from "./ChartSettings.styled";
 import type {
-  type ChartSettingsProps,
+  ChartSettingsProps,
   ChartSettingsWithStateProps,
-  type SectionRadioProps,
-  type UseChartSectionsProps,
-  type UseChartSettingsStateProps,
+  SectionRadioProps,
+  UseChartSectionsProps,
+  UseChartSettingsStateProps,
   Widget,
-  type WidgetListProps,
+  WidgetListProps,
 } from "./types";
 
 // section names are localized
@@ -443,21 +443,15 @@ export const ChartSettings = ({
 };
 
 export const ChartSettingsWithState = ({
-  settings,
   onChange,
   series,
   isDashboard,
   dashboard,
   dashcard,
+  onClose,
 }: ChartSettingsWithStateProps) => {
-  const [tempSettings, setTempSettings] = useState(settings);
+  const [tempSettings, setTempSettings] = useState<VisualizationSettings>();
   const [warnings, setWarnings] = useState();
-
-  useEffect(() => {
-    if (settings) {
-      setTempSettings(settings);
-    }
-  }, [settings]);
 
   const { chartSettings, chartSettingsRawSeries, handleChangeSettings } =
     useChartSettingsState({
@@ -466,16 +460,10 @@ export const ChartSettingsWithState = ({
       onChange: setTempSettings,
     });
 
-  const onDone = useCallback(
-    (settings: VisualizationSettings) => onChange?.(settings ?? tempSettings),
-    [onChange, tempSettings],
-  );
-
   const handleDone = useCallback(() => {
-    onDone?.(chartSettings);
-  }, [chartSettings, onDone]);
-
-  const handleCancel = useCallback(() => {}, []);
+    onChange?.(chartSettings ?? tempSettings);
+    onClose();
+  }, [chartSettings, onChange, onClose, tempSettings]);
 
   const handleResetSettings = useCallback(() => {
     const originalCardSettings = dashcard?.card.visualization_settings;
@@ -521,7 +509,7 @@ export const ChartSettingsWithState = ({
         </ChartSettingsVisualizationContainer>
         <ChartSettingsFooter
           onDone={handleDone}
-          onCancel={handleCancel}
+          onCancel={onClose}
           onReset={onResetToDefault}
         />
       </ChartSettingsPreview>
