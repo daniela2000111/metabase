@@ -15,7 +15,7 @@ import {
   getVisualizationSettings,
 } from "metabase/query_builder/selectors";
 import visualizations from "metabase/visualizations";
-import { ChartSettings } from "metabase/visualizations/components/ChartSettings";
+import { QuestionChartSettings } from "metabase/visualizations/components/ChartSettings";
 import type Question from "metabase-lib/v1/Question";
 import type { Dataset } from "metabase-types/api";
 
@@ -63,7 +63,7 @@ function ChartSettingsSidebarInner({
         {...sidebarContentProps}
       >
         <ErrorBoundary>
-          <ChartSettings
+          <QuestionChartSettings
             question={question}
             series={series}
             onChange={(settings, question) =>

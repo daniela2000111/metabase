@@ -3,7 +3,7 @@ import { t } from "ttag";
 
 import { DEFAULT_Z_INDEX } from "metabase/components/Popover/constants";
 import { Modal } from "metabase/ui";
-import { ChartSettingsWithState } from "metabase/visualizations/components/ChartSettings";
+import { DashcardChartSettings } from "metabase/visualizations/components/ChartSettings";
 import type {
   Dashboard,
   DashboardCard,
@@ -49,7 +49,7 @@ export function ChartSettingsButton({
         <Modal.Overlay />
         <Modal.Content mih="85%">
           <Modal.Body>
-            <ChartSettingsWithState
+            <DashcardChartSettings
               series={series}
               onChange={onReplaceAllVisualizationSettings}
               isDashboard
