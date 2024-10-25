@@ -69,7 +69,6 @@ function ChartSettingsSidebarInner({
             onChange={(settings, question) =>
               dispatch(onReplaceAllVisualizationSettings(settings, question))
             }
-            onClose={handleClose}
             initial={initialChartSetting}
             computedSettings={visualizationSettings}
           />

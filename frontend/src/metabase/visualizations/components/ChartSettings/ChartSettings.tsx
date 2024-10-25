@@ -87,7 +87,6 @@ const WidgetList = ({
   widgets,
   visibleWidgets,
   question,
-  currentSectionHasColumnSettings,
   computedSettings: propComputedSettings,
   setCurrentWidget,
   transformedSeries,
@@ -224,7 +223,6 @@ const WidgetList = ({
             question,
             onShowWidget: handleShowWidget,
             onEndShowWidget: handleEndShowWidget,
-            currentSectionHasColumnSettings,
             columnHasSettings,
             onChangeSeriesColor: handleChangeSeriesColor,
           }}
@@ -367,7 +365,6 @@ const useChartSections = ({ initial, widgets }: UseChartSectionsProps) => {
     sectionNames,
     chartSettingCurrentSection,
     visibleWidgets,
-    currentSectionHasColumnSettings,
     showSectionPicker,
     currentSection,
     setCurrentSection,
@@ -405,7 +402,6 @@ export const ChartSettings = ({
 
   const {
     chartSettingCurrentSection,
-    currentSectionHasColumnSettings,
     sectionNames,
     setCurrentSection,
     showSectionPicker,
@@ -431,7 +427,6 @@ export const ChartSettings = ({
         widgets={finalWidgetList}
         visibleWidgets={visibleWidgets}
         question={question}
-        currentSectionHasColumnSettings={currentSectionHasColumnSettings}
         series={series}
         computedSettings={propComputedSettings}
         setCurrentWidget={setCurrentWidget}
