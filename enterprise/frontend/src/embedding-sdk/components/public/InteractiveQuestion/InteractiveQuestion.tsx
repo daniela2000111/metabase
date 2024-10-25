@@ -2,6 +2,7 @@ import type { PropsWithChildren } from "react";
 
 import {
   BackButton,
+  ChartSettings,
   ChartTypeSelector,
   Editor,
   EditorButton,
@@ -97,6 +98,7 @@ const InteractiveQuestion = withPublicComponentWrapper(
   SaveQuestionForm: typeof SdkSaveQuestionForm;
   SaveButton: typeof SaveButton;
   ChartTypeSelector: typeof ChartTypeSelector;
+  ChartSettings: typeof ChartSettings;
 };
 
 InteractiveQuestion.BackButton = BackButton;
@@ -117,5 +119,6 @@ InteractiveQuestion.QuestionVisualization = QuestionVisualization;
 InteractiveQuestion.SaveQuestionForm = SdkSaveQuestionForm;
 InteractiveQuestion.SaveButton = SaveButton;
 InteractiveQuestion.ChartTypeSelector = ChartTypeSelector;
+InteractiveQuestion.ChartSettings = ChartSettings;
 
 export { InteractiveQuestion };
