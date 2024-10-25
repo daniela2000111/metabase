@@ -38,6 +38,7 @@ import {
   SectionWarnings,
 } from "./ChartSettings.styled";
 import type {
+  ChartSettingsInnerProps,
   ChartSettingsProps,
   ChartSettingsWithStateProps,
   SectionRadioProps,
@@ -372,33 +373,19 @@ const useChartSections = ({ initial, widgets }: UseChartSectionsProps) => {
   };
 };
 
-export const ChartSettings = ({
+export const ChartSettingsInner = ({
+  chartSettings,
+  computedSettings,
+  finalWidgetList,
   initial,
-  settings,
-  series,
-  computedSettings: propComputedSettings,
   onChange,
-  isDashboard = false,
-  dashboard,
   question,
-  widgets: propWidgets,
-}: ChartSettingsProps) => {
+  series,
+  transformedSeries,
+}: ChartSettingsInnerProps) => {
   const [currentWidget, setCurrentWidget] = useState<Widget | null>(
     initial?.widget ?? null,
   );
-
-  const {
-    chartSettings,
-    transformedSeries,
-    widgets: finalWidgetList,
-  } = useChartSettingsState({
-    settings,
-    series,
-    onChange,
-    isDashboard,
-    dashboard,
-    widgets: propWidgets,
-  });
 
   const {
     chartSettingCurrentSection,
@@ -428,12 +415,50 @@ export const ChartSettings = ({
         visibleWidgets={visibleWidgets}
         question={question}
         series={series}
-        computedSettings={propComputedSettings}
+        computedSettings={computedSettings}
         setCurrentWidget={setCurrentWidget}
         currentWidget={currentWidget}
         transformedSeries={transformedSeries}
       />
     </ChartSettingsMenu>
+  );
+};
+
+export const ChartSettings = ({
+  initial,
+  settings,
+  series,
+  computedSettings: propComputedSettings,
+  onChange,
+  isDashboard = false,
+  dashboard,
+  question,
+  widgets: propWidgets,
+}: ChartSettingsProps) => {
+  const {
+    chartSettings,
+    transformedSeries,
+    widgets: finalWidgetList,
+  } = useChartSettingsState({
+    settings,
+    series,
+    onChange,
+    isDashboard,
+    dashboard,
+    widgets: propWidgets,
+  });
+
+  return (
+    <ChartSettingsInner
+      question={question}
+      finalWidgetList={finalWidgetList}
+      chartSettings={chartSettings}
+      transformedSeries={transformedSeries}
+      initial={initial}
+      onChange={onChange}
+      series={series}
+      computedSettings={propComputedSettings}
+    />
   );
 };
 
@@ -444,16 +469,25 @@ export const ChartSettingsWithState = ({
   dashboard,
   dashcard,
   onClose,
+  widgets: propWidgets,
 }: ChartSettingsWithStateProps) => {
   const [tempSettings, setTempSettings] = useState<VisualizationSettings>();
   const [warnings, setWarnings] = useState();
 
-  const { chartSettings, chartSettingsRawSeries, handleChangeSettings } =
-    useChartSettingsState({
-      settings: tempSettings,
-      series,
-      onChange: setTempSettings,
-    });
+  const {
+    chartSettings,
+    chartSettingsRawSeries,
+    transformedSeries,
+    handleChangeSettings,
+    widgets: finalWidgetList,
+  } = useChartSettingsState({
+    settings: tempSettings,
+    series,
+    onChange: setTempSettings,
+    isDashboard,
+    dashboard,
+    widgets: propWidgets,
+  });
 
   const handleDone = useCallback(() => {
     onChange?.(chartSettings ?? tempSettings);
@@ -478,12 +512,12 @@ export const ChartSettingsWithState = ({
 
   return (
     <ChartSettingsRoot className={CS.spread}>
-      <ChartSettings
+      <ChartSettingsInner
+        chartSettings={chartSettings}
+        onChange={onChange}
+        finalWidgetList={finalWidgetList}
         series={series}
-        isDashboard={isDashboard ?? false}
-        dashboard={dashboard}
-        onChange={handleChangeSettings}
-        settings={chartSettings}
+        transformedSeries={transformedSeries}
       />
       <ChartSettingsPreview>
         <SectionWarnings warnings={warnings} size={20} />

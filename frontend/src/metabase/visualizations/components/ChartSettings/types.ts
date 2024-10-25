@@ -61,10 +61,24 @@ export type ChartSettingsProps = {
 
 export type ChartSettingsWithStateProps = Pick<
   ChartSettingsProps,
-  "series" | "onChange" | "isDashboard" | "dashboard"
+  "series" | "onChange" | "isDashboard" | "dashboard" | "widgets"
 > & {
   dashcard?: DashboardCard;
   onClose: () => void;
+};
+
+export type ChartSettingsInnerProps = {
+  chartSettings: VisualizationSettings;
+  computedSettings?: ComputedVisualizationSettings;
+  finalWidgetList: Widget[];
+  initial?: QueryBuilderUIControls["initialChartSetting"];
+  onChange: (
+    settings: ComputedVisualizationSettings,
+    question?: Question,
+  ) => void;
+  question?: Question;
+  series: Series;
+  transformedSeries: RawSeries | TransformedSeries;
 };
 
 export type UseChartSectionsProps = {
