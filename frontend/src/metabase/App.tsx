@@ -102,7 +102,7 @@ function App({
       <ScrollToTop>
         <KBarProvider>
           <KeyboardTriggeredErrorModal />
-          <AppContainer className={CS.spread}>
+          <AppContainer className={CS.spread} data-iframe-size>
             <AppBanner />
             {isAppBarVisible && <AppBar />}
             <AppContentContainer isAdminApp={isAdminApp}>

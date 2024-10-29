@@ -483,7 +483,7 @@ export function initializeIframeResizer(onReady = () => {}) {
     return;
   }
 
-  // Make iFrameResizer avaliable so that embed users can
+  // Make iFrameResizer available so that embed users can
   // have their embeds autosize to their content
   if (window.iFrameResizer) {
     console.error("iFrameResizer resizer already defined.");
@@ -495,10 +495,10 @@ export function initializeIframeResizer(onReady = () => {}) {
       onReady,
     };
 
-    // Make iframe-resizer avaliable to the embed
+    // Make iframe-resizer available to the embed
     // We only care about contentWindow so require that minified file
 
-    import("iframe-resizer/js/iframeResizer.contentWindow.js");
+    import("@iframe-resizer/child");
   }
 }
 

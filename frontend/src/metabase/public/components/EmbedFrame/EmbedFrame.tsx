@@ -151,6 +151,7 @@ export const EmbedFrame = ({
       })}
       data-testid="embed-frame"
       data-embed-theme={theme}
+      data-iframe-size
     >
       <ContentContainer
         id={DASHBOARD_PDF_EXPORT_ROOT_ID}
