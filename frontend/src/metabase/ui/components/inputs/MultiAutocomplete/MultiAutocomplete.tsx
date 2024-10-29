@@ -29,6 +29,7 @@ export function MultiAutocomplete({
   onSearchChange,
   onFocus,
   onBlur,
+  maxSelectedValues,
   ...props
 }: MultiAutocompleteProps) {
   const [selectedValues, setSelectedValues] = useUncontrolled({
@@ -53,8 +54,18 @@ export function MultiAutocomplete({
 
   const handleChange = (newValues: string[]) => {
     const values = unique(newValues);
-    setSelectedValues(values);
-    setLastSelectedValues(values);
+    if (maxSelectedValues === 1) {
+      if (values.length === 0) {
+        setSelectedValues(values);
+        setLastSelectedValues(values);
+      } else {
+        setSelectedValues([values.at(-1)!]);
+        setLastSelectedValues([values.at(-1)!]);
+      }
+    } else {
+      setSelectedValues(values);
+      setLastSelectedValues(values);
+    }
   };
 
   const handleFocus = (event: FocusEvent<HTMLInputElement>) => {

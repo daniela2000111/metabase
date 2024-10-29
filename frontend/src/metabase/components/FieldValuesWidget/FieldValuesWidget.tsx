@@ -618,6 +618,7 @@ export function FieldValuesWidgetInner({
             autoFocus={autoFocus}
             icon={prefix && <span data-testid="input-prefix">{prefix}</span>}
             itemComponent={CustomItemComponent}
+            maxSelectedValues={multi ? Infinity : 1}
           />
         ) : (
           <TokenField
