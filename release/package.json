@@ -30,7 +30,7 @@
     "semver": "^7.5.4",
     "ts-pattern": "^5.2.0",
     "tsx": "^3.12.7",
-    "typescript": "^5.1.6",
+    "typescript": "^5.6.3",
     "underscore": "^1.13.6",
     "zx": "^8.1.0"
   },
