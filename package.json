@@ -51,7 +51,7 @@
     "d3-scale": "^4.0.2",
     "dayjs": "^1.10.4",
     "detect-package-manager": "^3.0.2",
-    "diff": "^3.2.0",
+    "diff": "^4.0.4",
     "echarts": "^5.5.1-rc.1",
     "fast-text-encoding": "^1.0.6",
     "formik": "^2.4.5",
